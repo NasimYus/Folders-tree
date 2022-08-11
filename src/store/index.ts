@@ -12,9 +12,20 @@ export default createStore({
             id: 11,
             name: "Dir 1-1",
             type: "folder",
-            thirdGroup: [{ id: 111, name: "File 1-1-1", type: "file" }],
+            thirdGroup: [
+              {
+                id: 111,
+                name: "File 1-1-1",
+                type: "file",
+              },
+            ],
           },
-          { id: 12, name: "File 1-2", type: "file" },
+          {
+            id: 12,
+            name: "File 1-2",
+            type: "file",
+            thirdGroup: [],
+          },
         ],
       },
       {
@@ -28,7 +39,7 @@ export default createStore({
             type: "folder",
             thirdGroup: [],
           },
-          { id: 22, name: "File 2-2", type: "file" },
+          { id: 22, name: "File 2-2", type: "file", thirdGroup: [] },
         ],
       },
       {
@@ -40,7 +51,11 @@ export default createStore({
     ],
   },
   getters: {},
-  mutations: {},
+  mutations: {
+    DELETE_ELEMENT(state, payload) {
+      state.mainGroup = payload;
+    },
+  },
   actions: {},
   modules: {},
 });
