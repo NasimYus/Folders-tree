@@ -1,33 +1,25 @@
 <template>
-  <section v-if="mainGroup.length">
+  <section>
     <div
-      v-for="item in mainGroup"
+      v-for="(item, index) in mainGroup"
       :key="item.id"
       class="folders-tree-container"
     >
-      <folders-tree :treeGroup="item"></folders-tree>
+      <folders-tree :parentIndexes="[index]" :treeGroup="item" />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { useStore } from "vuex";
-import { computed, defineAsyncComponent, watch } from "vue";
+import { TMainGroup } from "../types/index";
+import { computed, defineAsyncComponent } from "vue";
+
 const store = useStore();
-const mainGroup = computed(() => store.state.mainGroup);
-const mainGroupToString = computed(() => JSON.stringify(mainGroup));
-watch(
-  () => mainGroupToString,
-  () => {}
-);
+
+const mainGroup = computed<TMainGroup[]>(() => store.state.mainGroup);
 
 const FoldersTree = defineAsyncComponent(
   () => import("../components/folders-tree/FoldersTree.vue")
 );
 </script>
-
-<style lang="scss" scoped>
-.folders-tree-container {
-  margin-left: 50px;
-}
-</style>

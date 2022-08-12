@@ -1,16 +1,27 @@
 <template>
   <div>
     <div class="main-section">
-      <p class="main-paragraph">
-        <FolderIcon v-if="treeGroup.type === 'folder'" class="icons-style-40" />
-        <DocumentIcon v-else class="icons-style-40" />
-        <span class="cursor-pointer">
+      <div class="main-paragraph">
+        <FolderIcon
+          v-if="treeGroup.type === 'folder'"
+          class="icons-style-40"
+        ></FolderIcon>
+        <DocumentIcon v-else class="icons-style-40"></DocumentIcon>
+        <span v-if="!isUpdate" class="cursor-pointer">
           {{ treeGroup.name }}
         </span>
-      </p>
+        <div class="input-group" v-else>
+          <input :id="treeGroup.id" type="text" v-model="name" />
+          <button @click="updateElement">
+            <CheckIcon class="icons-style-10" />
+          </button>
+        </div>
+      </div>
       <div class="main-events">
-        <button><PencilIcon class="icons-style-20" /></button>
-        <button @click="deleteElement(treeGroup)">
+        <button @click="isUpdate = true">
+          <PencilIcon class="icons-style-20" />
+        </button>
+        <button @click="deleteElement">
           <TrashIcon class="icons-style-20" />
         </button>
       </div>
@@ -21,89 +32,67 @@
 
 <script setup lang="ts">
 import { FolderIcon } from "@heroicons/vue/solid";
+import { CheckIcon } from "@heroicons/vue/solid";
 import { DocumentIcon } from "@heroicons/vue/solid";
 import { PencilIcon } from "@heroicons/vue/solid";
 import { TrashIcon } from "@heroicons/vue/solid";
 
-import { computed, defineAsyncComponent, defineProps } from "vue";
+import { computed, defineProps, ref, watch } from "vue";
 import { useStore } from "vuex";
+import { TMainGroup, TSubGroup, TThirdGroup } from "@/types";
 
 const props = defineProps<{
-  treeGroup: any;
+  treeGroup: TMainGroup | TSubGroup | TThirdGroup;
+  parentIndexes: number[];
 }>();
+
+const isUpdate = ref<boolean>(false);
+const name = ref<string>("");
+
 const store = useStore();
 
-const mainGroup = computed(() => store.state.mainGroup);
-
-function deleteElement(element: any) {
-  let newTreeData = mainGroup.value.filter((item: any) => {
-    if (item.name === element.name) {
-      let index = mainGroup.value.indexOf(item);
-      console.log(index);
-      const st = mainGroup.value.splice(index, 1);
-      console.log(st);
-    }
-  });
-  console.log(newTreeData);
-  store.commit("DELETE_ELEMENT", newTreeData);
-
-  /*
-  * else {
-      item.subGroup.filter((subItem: any) => {
-        if (subItem.name === element.name) {
-          let index = item.subGroup.indexOf(subItem);
-          item.subGroup.splice(index, 1);
-        } else {
-          subItem.thirdGroup.filter((thirdItem: any) => {
-            if (thirdItem.name === element.name) {
-              let index = subItem.thirdGroup.indexOf(thirdItem);
-              subItem.thirdGroup.splice(index, 1);
-            }
-          });
-        }
-      });
-    }
-  * */
-}
-
-const FoldersTreeSection = defineAsyncComponent(
-  () => import("../components/folders-tree/FoldersTreeSection.vue")
+const mainGroup = computed<TMainGroup[]>(() => store.state.mainGroup);
+const treeGroupToString = computed<string>(() =>
+  JSON.stringify(props.treeGroup)
 );
+
+watch(
+  () => treeGroupToString,
+  () => {
+    name.value = props.treeGroup.name;
+  },
+  { immediate: true }
+);
+
+function deleteElement(): void {
+  if (props.parentIndexes.length === 1) {
+    mainGroup.value.splice(props.parentIndexes[0], 1);
+  } else if (props.parentIndexes.length === 2) {
+    mainGroup.value[props.parentIndexes[0]].subGroup.splice(
+      props.parentIndexes[1],
+      1
+    );
+  } else {
+    mainGroup.value[props.parentIndexes[0]].subGroup[
+      props.parentIndexes[1]
+    ].thirdGroup.splice(props.parentIndexes[2], 1);
+  }
+  store.commit("UPDATE_MAIN_GROUP", mainGroup.value);
+}
+
+function updateElement(): void {
+  if (props.parentIndexes.length === 1) {
+    mainGroup.value[props.parentIndexes[0]].name = name.value;
+  } else if (props.parentIndexes.length === 2) {
+    mainGroup.value[props.parentIndexes[0]].subGroup[
+      props.parentIndexes[1]
+    ].name = name.value;
+  } else {
+    mainGroup.value[props.parentIndexes[0]].subGroup[
+      props.parentIndexes[1]
+    ].thirdGroup[props.parentIndexes[2]].name = name.value;
+  }
+  store.commit("UPDATE_MAIN_GROUP", mainGroup.value);
+  isUpdate.value = false;
+}
 </script>
-
-<style scoped lang="scss">
-.main-section {
-  display: flex;
-  justify-content: space-between;
-  .main-paragraph {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-  }
-
-  .main-events {
-    button {
-      cursor: pointer;
-      border: 0;
-      background: #fff;
-    }
-    display: flex;
-    justify-content: space-between;
-  }
-}
-
-.icons-style-40 {
-  width: 40px;
-  height: 40px;
-  color: #ccc;
-}
-
-.icons-style-20 {
-  width: 20px;
-  height: 20px;
-  color: black;
-  &:hover {
-    color: blue;
-  }
-}
-</style>

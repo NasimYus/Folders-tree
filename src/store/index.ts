@@ -52,7 +52,7 @@ export default createStore({
   },
   getters: {},
   mutations: {
-    DELETE_ELEMENT(state, payload) {
+    UPDATE_MAIN_GROUP(state, payload) {
       state.mainGroup = payload;
     },
   },

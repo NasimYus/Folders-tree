@@ -1,21 +1,28 @@
 <template>
-  <folders-tree-section :treeGroup="treeGroup">
+  <folders-tree-section
+    :parentIndexes="[...parentIndexes]"
+    :treeGroup="treeGroup"
+  >
     <div v-if="treeGroup.subGroup.length">
       <div
-        v-for="subGroup in treeGroup.subGroup"
+        v-for="(subGroup, subIndex) in treeGroup.subGroup"
         :key="subGroup.id"
         class="folders-tree-container"
       >
-        <folders-tree-section :treeGroup="subGroup">
+        <folders-tree-section
+          :parentIndexes="[...parentIndexes, subIndex]"
+          :treeGroup="subGroup"
+        >
           <div v-if="subGroup.thirdGroup.length">
             <div
-              v-for="thirdGroup in subGroup.thirdGroup"
+              v-for="(thirdGroup, thirdIndex) in subGroup.thirdGroup"
               :key="thirdGroup.id"
               class="folders-tree-container"
             >
               <folders-tree-section
+                :parentIndexes="[...parentIndexes, subIndex, thirdIndex]"
                 :treeGroup="thirdGroup"
-              ></folders-tree-section>
+              />
             </div>
           </div>
         </folders-tree-section>
@@ -26,17 +33,14 @@
 
 <script lang="ts" setup>
 import { defineAsyncComponent, defineProps } from "vue";
+import { TMainGroup } from "@/types";
 
 const props = defineProps<{
-  treeGroup: any;
+  treeGroup: TMainGroup;
+  parentIndexes: number[];
 }>();
 
 const FoldersTreeSection = defineAsyncComponent(
   () => import("../folders-tree/FoldersTreeSection.vue")
 );
 </script>
-<style scoped lang="scss">
-.folders-tree-container {
-  margin-left: 50px;
-}
-</style>
